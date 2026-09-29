@@ -2,7 +2,7 @@
 
 > **kotsu** (コツ): the knack for doing something.
 
-Ask Neovim *how* to do something and get the fastest key sequence, grounded in **your own keymaps**, in a centred popup.
+Ask Neovim _how_ to do something and get the fastest key sequence, grounded in **your own keymaps**, in a centred popup.
 
 ```
 :Kotsu delete to the end of the paragraph
@@ -26,7 +26,7 @@ Ask Neovim *how* to do something and get the fastest key sequence, grounded in *
 
 ```lua
 {
-  "<you>/kotsu.nvim",
+  "TheodosiouTh/kotsu.nvim",
   cmd = "Kotsu",
   keys = { { "<Leader>?", function() require("kotsu").prompt() end, desc = "How do I…?" } },
   opts = {},
@@ -37,11 +37,11 @@ Then run `:checkhealth kotsu`.
 
 ## Usage
 
-| | |
-|---|---|
-| `:Kotsu <question>` | Ask directly |
+|                        |                       |
+| ---------------------- | --------------------- |
+| `:Kotsu <question>`    | Ask directly          |
 | `:Kotsu` / `<Leader>?` | Open the input prompt |
-| `q` / `<Esc>` | Close the popup |
+| `q` / `<Esc>`          | Close the popup       |
 
 Bind the prompt yourself with the always-available `<Plug>` mapping, no `setup()` needed:
 
