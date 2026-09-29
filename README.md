@@ -8,7 +8,7 @@ Ask Neovim _how_ to do something and get the fastest key sequence, grounded in *
 :Kotsu delete to the end of the paragraph
 ```
 
-<!-- TODO: demo GIF -->
+
 
 - **Fastest way, not just your bindings.** Answers combine your mappings with built-in motions, operators and text objects.
 - **Knows your mappings.** Every mapping with a description is sent as context, so answers prefer your bindings over generic ones.
