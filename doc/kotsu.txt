@@ -1,0 +1,111 @@
+*kotsu.txt*    Ask how to do something, get the key sequence.
+
+kotsu (コツ): the knack for doing something.
+
+==============================================================================
+CONTENTS                                                       *kotsu-contents*
+
+  1. Introduction ........................................ |kotsu-intro|
+  2. Usage ............................................... |kotsu-usage|
+  3. Configuration ....................................... |kotsu-config|
+  4. Backends ............................................ |kotsu-backend|
+  5. Health .............................................. |kotsu-health|
+  6. Limitations ......................................... |kotsu-limitations|
+
+==============================================================================
+1. INTRODUCTION                                                  *kotsu-intro*
+
+Ask in plain language how to do something ("delete to the end of the
+paragraph") and get the fastest key sequence in a centred popup. Your own
+mappings (those with a description) are sent as context, so answers prefer
+your bindings over generic ones.
+
+Requires Neovim 0.10 or newer and a backend (by default the Claude Code CLI,
+`claude`, on your PATH).
+
+==============================================================================
+2. USAGE                                                         *kotsu-usage*
+
+                                                                      *:Kotsu*
+:Kotsu {question}       Ask {question} directly.
+:Kotsu                  Open an input prompt for the question.
+
+<Leader>?               Open the input prompt (see |kotsu-config| `keymap`).
+
+In the popup, `q` or <Esc> closes it. Leaving the window also closes it.
+
+                                                       *<Plug>(kotsu-prompt)*
+A <Plug> mapping is always available, so you can bind the prompt yourself
+without calling `setup()` and without loading the plugin eagerly:
+>lua
+  vim.keymap.set("n", "<Leader>?", "<Plug>(kotsu-prompt)",
+    { desc = "How do I…?" })
+<
+Closing the popup discards the pending answer, and asking a new question
+supersedes the previous one.
+
+Lua API:                                                           *kotsu-api*
+>lua
+  require("kotsu").setup(opts)   -- apply options and the keymap
+  require("kotsu").ask("...")    -- ask a question
+  require("kotsu").prompt()      -- open the input prompt
+<
+==============================================================================
+3. CONFIGURATION                                                *kotsu-config*
+
+Call `setup()` with any options you want to change. Defaults:
+>lua
+  require("kotsu").setup({
+    -- Normal-mode mapping for the prompt. `false` = no mapping.
+    keymap = "<Leader>?",
+    -- "claude" or a function. See |kotsu-backend|.
+    backend = "claude",
+    timeout_ms = 60000,
+    context = {
+      modes = { "n", "x", "o", "i" },  -- whose mappings are sent
+      max_mappings = 500,
+    },
+    prompt = {
+      extra = nil,  -- extra prompt text, e.g. "I use AstroNvim."
+    },
+    window = {
+      border = "rounded",
+      min_width = 40,
+      max_width = 0.7,   -- fraction of editor columns
+      max_height = 0.6,  -- fraction of editor lines
+    },
+  })
+<
+`:Kotsu` works without calling `setup()`; the defaults are used and no
+keymap is created.
+
+==============================================================================
+4. BACKENDS                                                    *kotsu-backend*
+
+Built in:
+
+  "claude"    Runs `claude -p <prompt>` (Claude Code CLI).
+
+Custom backend: pass a function instead of a name.
+>lua
+  backend = function(prompt, opts, on_done)
+    -- opts.timeout_ms is the configured timeout.
+    -- Call on_done(true, answer) or on_done(false, error_message).
+    -- on_done can be called from any context.
+  end
+<
+==============================================================================
+5. HEALTH                                                       *kotsu-health*
+
+`:checkhealth kotsu` checks the Neovim version, whether the backend is
+available, and how many mappings with descriptions were found.
+
+==============================================================================
+6. LIMITATIONS                                             *kotsu-limitations*
+
+- Answers are not yet checked against your real mappings.
+- One question at a time; no follow-ups.
+- Closing the popup discards the answer but does not kill the backend
+  process; it runs until it exits or `timeout_ms` elapses.
+
+ vim:tw=78:ts=8:ft=help:norl:
