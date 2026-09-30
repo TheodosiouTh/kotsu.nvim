@@ -58,6 +58,8 @@ require("kotsu").setup({
   keymap = "<Leader>?",          -- false = no mapping
   backend = "claude",            -- or a function, see below
   timeout_ms = 60000,
+  model = "haiku",               -- passed to the backend, e.g. --model
+  effort = "low",                -- passed to the backend, e.g. --effort
   context = {
     modes = { "n", "x", "o", "i" },
     max_mappings = 500,
@@ -74,12 +76,18 @@ require("kotsu").setup({
 })
 ```
 
+The built-in `"claude"` backend always runs with `--safe-mode --tools ""
+--no-session-persistence`, so `:Kotsu` never loads your CLAUDE.md, hooks,
+skills, MCP servers or plugins, and never writes a session to disk. That's
+independent of `model`/`effort` above, and not configurable.
+
 ### Custom backend
 
 ```lua
 backend = function(prompt, opts, on_done)
-  -- opts.timeout_ms is the configured timeout.
-  -- Call on_done(true, answer) or on_done(false, "error message").
+  -- opts.timeout_ms, opts.model, opts.effort are the configured values
+  -- (model/effort may be nil). Call on_done(true, answer) or
+  -- on_done(false, "error message").
 end
 ```
 

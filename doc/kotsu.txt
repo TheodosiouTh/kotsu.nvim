@@ -61,6 +61,8 @@ Call `setup()` with any options you want to change. Defaults:
     -- "claude" or a function. See |kotsu-backend|.
     backend = "claude",
     timeout_ms = 60000,
+    model = "haiku",  -- forwarded to the backend, e.g. --model
+    effort = "low",   -- forwarded to the backend, e.g. --effort
     context = {
       modes = { "n", "x", "o", "i" },  -- whose mappings are sent
       max_mappings = 500,
@@ -84,12 +86,18 @@ keymap is created.
 
 Built in:
 
-  "claude"    Runs `claude -p <prompt>` (Claude Code CLI).
+  "claude"    Runs `claude -p <prompt>` (Claude Code CLI), always with
+              --safe-mode --tools "" --no-session-persistence, so it never
+              loads your CLAUDE.md, hooks, skills, MCP servers or plugins,
+              and never writes a session to disk. Not configurable.
+              `model`/`effort` (see |kotsu-config|) are passed through as
+              --model/--effort when set.
 
 Custom backend: pass a function instead of a name.
 >lua
   backend = function(prompt, opts, on_done)
-    -- opts.timeout_ms is the configured timeout.
+    -- opts.timeout_ms, opts.model, opts.effort are the configured values
+    -- (model/effort may be nil).
     -- Call on_done(true, answer) or on_done(false, error_message).
     -- on_done can be called from any context.
   end

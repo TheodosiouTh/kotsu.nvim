@@ -44,7 +44,9 @@ function M.ask(question)
     ui.update(frame(success and text or ("**Error:** " .. text)))
   end)
 
-  local run_ok, run_err = pcall(backend.run, prompt, { timeout_ms = opts.timeout_ms }, on_done)
+  local run_ok, run_err = pcall(
+    backend.run, prompt, { timeout_ms = opts.timeout_ms, model = opts.model, effort = opts.effort }, on_done
+  )
   if not run_ok then on_done(false, ("backend `%s` failed: %s"):format(backend.name, run_err)) end
 end
 
