@@ -41,8 +41,9 @@ without calling `setup()` and without loading the plugin eagerly:
   vim.keymap.set("n", "<Leader>?", "<Plug>(kotsu-prompt)",
     { desc = "How do I…?" })
 <
-Closing the popup discards the pending answer, and asking a new question
-supersedes the previous one.
+Closing the popup, or asking a new question, cancels a pending request:
+its backend process is killed (if the backend supports that) and its
+answer, if it arrives late anyway, is discarded.
 
 Lua API:                                                           *kotsu-api*
 >lua
@@ -100,6 +101,9 @@ Custom backend: pass a function instead of a name.
     -- (model/effort may be nil).
     -- Call on_done(true, answer) or on_done(false, error_message).
     -- on_done can be called from any context.
+    -- Return a handle with :kill(signal) and :is_closing() (like
+    -- vim.system's return value) to support cancelling when the popup
+    -- closes early; optional.
   end
 <
 ==============================================================================
@@ -113,7 +117,5 @@ available, and how many mappings with descriptions were found.
 
 - Answers are not yet checked against your real mappings.
 - One question at a time; no follow-ups.
-- Closing the popup discards the answer but does not kill the backend
-  process; it runs until it exits or `timeout_ms` elapses.
 
  vim:tw=78:ts=8:ft=help:norl:

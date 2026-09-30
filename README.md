@@ -87,7 +87,9 @@ independent of `model`/`effort` above, and not configurable.
 backend = function(prompt, opts, on_done)
   -- opts.timeout_ms, opts.model, opts.effort are the configured values
   -- (model/effort may be nil). Call on_done(true, answer) or
-  -- on_done(false, "error message").
+  -- on_done(false, "error message"). Return a handle with :kill(signal)
+  -- and :is_closing() (like vim.system's return value) to support
+  -- cancelling when the popup closes early; optional.
 end
 ```
 
