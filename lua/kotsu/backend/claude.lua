@@ -6,8 +6,16 @@ function M.available()
   return false, "`claude` CLI not found on PATH"
 end
 
+local FIXED_ARGS = { "--safe-mode", "--tools", "", "--no-session-persistence" }
+
 function M.run(prompt, opts, on_done)
-  return vim.system({ "claude", "-p", prompt }, { text = true, timeout = opts.timeout_ms }, function(res)
+  local args = { "claude", "-p" }
+  vim.list_extend(args, FIXED_ARGS)
+  if opts.model then vim.list_extend(args, { "--model", opts.model }) end
+  if opts.effort then vim.list_extend(args, { "--effort", opts.effort }) end
+  table.insert(args, prompt)
+
+  return vim.system(args, { text = true, timeout = opts.timeout_ms }, function(res)
     if res.code == 0 then
       local out = vim.trim(res.stdout or "")
       return on_done(true, out ~= "" and out or "(empty response)")

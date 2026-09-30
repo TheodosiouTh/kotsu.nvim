@@ -17,6 +17,8 @@ local M = {}
 ---@field keymap string|false
 ---@field backend string|kotsu.BackendRun
 ---@field timeout_ms integer
+---@field model? string
+---@field effort? "low"|"medium"|"high"|"xhigh"|"max"
 ---@field context kotsu.ContextOptions
 ---@field prompt kotsu.PromptOptions
 ---@field window kotsu.WindowOptions
@@ -24,6 +26,8 @@ M.defaults = {
   keymap = "<Leader>?",
   backend = "claude",
   timeout_ms = 60000,
+  model = "haiku",
+  effort = "low",
   context = {
     modes = { "n", "x", "o", "i" },
     max_mappings = 500,
@@ -66,6 +70,12 @@ function M.setup(opts)
   check("keymap", o.keymap == false or type(o.keymap) == "string", "a string or false")
   check("backend", type(o.backend) == "string" or type(o.backend) == "function", "a string or a function")
   check("timeout_ms", is_positive(o.timeout_ms), "a positive number")
+  check("model", o.model == nil or type(o.model) == "string", "a string or nil")
+  check(
+    "effort",
+    o.effort == nil or vim.tbl_contains({ "low", "medium", "high", "xhigh", "max" }, o.effort),
+    "one of low|medium|high|xhigh|max, or nil"
+  )
   check("context.modes", vim.islist(o.context.modes), "a list of mode strings")
   check("context.max_mappings", is_positive(o.context.max_mappings), "a positive number")
   check("prompt.extra", o.prompt.extra == nil or type(o.prompt.extra) == "string", "a string or nil")
