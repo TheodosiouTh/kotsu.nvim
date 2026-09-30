@@ -36,7 +36,12 @@ function M.ask(question)
 
   request = request + 1
   local id, settled = request, false
-  ui.show(frame("Thinking…"), question, opts.window)
+  local ticket = {}
+
+  ui.show(frame("Thinking…"), question, opts.window, function()
+    local h = ticket.handle
+    if h then pcall(function() if not h:is_closing() then h:kill(15) end end) end
+  end)
 
   local on_done = vim.schedule_wrap(function(success, text)
     if settled or id ~= request then return end
@@ -44,10 +49,14 @@ function M.ask(question)
     ui.update(frame(success and text or ("**Error:** " .. text)))
   end)
 
-  local run_ok, run_err = pcall(
+  local run_ok, result = pcall(
     backend.run, prompt, { timeout_ms = opts.timeout_ms, model = opts.model, effort = opts.effort }, on_done
   )
-  if not run_ok then on_done(false, ("backend `%s` failed: %s"):format(backend.name, run_err)) end
+  if run_ok then
+    ticket.handle = result
+  else
+    on_done(false, ("backend `%s` failed: %s"):format(backend.name, result))
+  end
 end
 
 ---Open the "How do I…" input prompt.

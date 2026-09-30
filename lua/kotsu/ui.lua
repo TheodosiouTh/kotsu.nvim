@@ -1,13 +1,14 @@
 local M = {}
 
-local state = { win = nil, buf = nil, question = nil, win_opts = nil }
+local state = { win = nil, buf = nil, question = nil, win_opts = nil, on_close = nil }
 
 function M.close()
-  local win = state.win
-  state.win, state.buf, state.question, state.win_opts = nil, nil, nil, nil
+  local win, on_close = state.win, state.on_close
+  state.win, state.buf, state.question, state.win_opts, state.on_close = nil, nil, nil, nil, nil
   if win and vim.api.nvim_win_is_valid(win) then
     vim.api.nvim_win_close(win, true)
   end
+  if on_close then on_close() end
 end
 
 ---@return boolean
@@ -64,9 +65,10 @@ end
 ---@param lines string[]
 ---@param question string single-line, already trimmed
 ---@param win_opts kotsu.WindowOptions
-function M.show(lines, question, win_opts)
+---@param on_close? fun() called once when this popup closes, incl. when superseded
+function M.show(lines, question, win_opts, on_close)
   M.close()
-  state.question, state.win_opts = question, win_opts
+  state.question, state.win_opts, state.on_close = question, win_opts, on_close
 
   state.buf = vim.api.nvim_create_buf(false, true)
   vim.bo[state.buf].bufhidden = "wipe"

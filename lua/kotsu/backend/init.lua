@@ -1,6 +1,7 @@
 local M = {}
 
----@alias kotsu.BackendRun fun(prompt: string, opts: { timeout_ms: integer, model: string?, effort: string? }, on_done: fun(ok: boolean, text: string)): any?
+---@alias kotsu.BackendHandle { kill: fun(self: any, signal: integer), is_closing: fun(self: any): boolean }
+---@alias kotsu.BackendRun fun(prompt: string, opts: { timeout_ms: integer, model: string?, effort: string? }, on_done: fun(ok: boolean, text: string)): kotsu.BackendHandle?
 
 ---@class kotsu.Backend
 ---@field name string
