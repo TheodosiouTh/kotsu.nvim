@@ -1,6 +1,7 @@
 local M = {}
 
-local state = { win = nil, buf = nil, question = nil, win_opts = nil, on_close = nil, lines = nil, hidden = false }
+local state =
+  { win = nil, buf = nil, question = nil, win_opts = nil, on_close = nil, lines = nil, hidden = false, hint = nil }
 
 ---@return boolean
 function M.is_open()
@@ -14,8 +15,8 @@ end
 
 function M.close()
   local win, buf, on_close = state.win, state.buf, state.on_close
-  state.win, state.buf, state.question, state.win_opts, state.on_close, state.lines, state.hidden =
-    nil, nil, nil, nil, nil, nil, false
+  state.win, state.buf, state.question, state.win_opts, state.on_close, state.lines, state.hidden, state.hint =
+    nil, nil, nil, nil, nil, nil, false, nil
   if win and vim.api.nvim_win_is_valid(win) then
     vim.api.nvim_win_close(win, true)
   end
@@ -93,7 +94,7 @@ local function open_window(win_opts, enter)
   local cfg = position(win_opts.min_width, 1)
   cfg.style = "minimal"
   cfg.border = win_opts.border
-  cfg.footer = " q / <Esc> to close "
+  cfg.footer = state.hint and (" q / <Esc> to close · %s to hide "):format(state.hint) or " q / <Esc> to close "
   cfg.footer_pos = "center"
   cfg.zindex = 250
   state.win = vim.api.nvim_open_win(state.buf, enter, cfg)
@@ -110,9 +111,10 @@ end
 ---@param question string single-line, already trimmed
 ---@param win_opts kotsu.WindowOptions
 ---@param on_close? fun() called once when this popup closes, incl. when superseded
-function M.show(lines, question, win_opts, on_close)
+---@param hint? string e.g. "<Leader>tk", shown in the footer as "<hint> to hide"
+function M.show(lines, question, win_opts, on_close, hint)
   M.close()
-  state.question, state.win_opts, state.on_close, state.hidden = question, win_opts, on_close, false
+  state.question, state.win_opts, state.on_close, state.hidden, state.hint = question, win_opts, on_close, false, hint
 
   state.buf = vim.api.nvim_create_buf(false, true)
   vim.bo[state.buf].bufhidden = "hide"

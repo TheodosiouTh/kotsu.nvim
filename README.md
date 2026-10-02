@@ -43,7 +43,7 @@ Then run `:checkhealth kotsu`.
 | `:Kotsu` / `<Leader>?` | Open the input prompt |
 | `q` / `<Esc>`          | Close the popup       |
 
-Leaving the popup's window (e.g. to type the suggested key sequence) hides it instead of closing it: the answer is kept, and a toggle key brings it back. `q`/`<Esc>`, or asking a new question, close it for real.
+Leaving the popup's window (e.g. to type the suggested key sequence) hides it instead of closing it: the answer is kept, and a toggle key brings it back. `q`/`<Esc>`, or asking a new question, close it for real. When `toggle_keymap` is set, the popup's footer shows it alongside `q`/`<Esc>`.
 
 Bind the prompt and the toggle yourself with the always-available `<Plug>` mappings, no `setup()` needed:
 

@@ -35,7 +35,8 @@ Requires Neovim 0.10 or newer and a backend (by default the Claude Code CLI,
 In the popup, `q` or <Esc> closes it. Leaving the window (e.g. to type the
 suggested key sequence) hides it instead: the last answer is kept, and a
 toggle brings the popup back up. Asking a new question while one is hidden
-discards it and starts fresh.
+discards it and starts fresh. When `toggle_keymap` (see |kotsu-config|) is
+set, the popup's footer shows it alongside `q`/<Esc>.
 
                                       *<Plug>(kotsu-prompt)* *<Plug>(kotsu-toggle)*
 <Plug> mappings are always available, so you can bind the prompt and the

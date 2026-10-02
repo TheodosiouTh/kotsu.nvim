@@ -20,6 +20,11 @@ local function frame(text)
   return lines
 end
 
+local function toggle_hint(key)
+  if not key then return nil end
+  return vim.fn.keytrans(vim.api.nvim_replace_termcodes(key, true, true, true))
+end
+
 ---Ask a question and show the answer in the popup.
 ---@param question? string
 function M.ask(question)
@@ -42,7 +47,7 @@ function M.ask(question)
   ui.show(frame("Thinking…"), question, opts.window, function()
     local h = ticket.handle
     if h then pcall(function() if not h:is_closing() then h:kill(15) end end) end
-  end)
+  end, toggle_hint(opts.toggle_keymap))
 
   local on_done = vim.schedule_wrap(function(success, text)
     if settled or id ~= request then return end
