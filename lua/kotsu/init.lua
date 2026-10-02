@@ -82,18 +82,20 @@ end
 
 ---@param old_key string|false?
 ---@param new_key string|false?
+---@param modes string|string[]
 ---@return string|false? still_mapped the key now mapped, for the caller to remember
-local function sync_keymap(old_key, new_key, fn, desc)
-  if old_key then pcall(vim.keymap.del, "n", old_key) end
-  if new_key then vim.keymap.set("n", new_key, fn, { desc = desc }) end
+local function sync_keymap(old_key, new_key, fn, desc, modes)
+  if old_key then pcall(vim.keymap.del, modes, old_key) end
+  if new_key then vim.keymap.set(modes, new_key, fn, { desc = desc }) end
   return new_key or nil
 end
 
 ---@param opts? table see :h kotsu-config
 function M.setup(opts)
   config.setup(opts)
-  mapped_key = sync_keymap(mapped_key, config.options.keymap, M.prompt, "How do I…? (shortcut help)")
-  mapped_toggle_key = sync_keymap(mapped_toggle_key, config.options.toggle_keymap, M.toggle, "Hide/unhide the kotsu popup")
+  mapped_key = sync_keymap(mapped_key, config.options.keymap, M.prompt, "How do I…? (shortcut help)", "n")
+  mapped_toggle_key =
+    sync_keymap(mapped_toggle_key, config.options.toggle_keymap, M.toggle, "Hide/unhide the kotsu popup", { "n", "t" })
 end
 
 return M

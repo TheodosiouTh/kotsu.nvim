@@ -49,8 +49,10 @@ Bind the prompt and the toggle yourself with the always-available `<Plug>` mappi
 
 ```lua
 vim.keymap.set("n", "<Leader>?", "<Plug>(kotsu-prompt)", { desc = "How do I…?" })
-vim.keymap.set("n", "<Leader>!", "<Plug>(kotsu-toggle)", { desc = "Hide/unhide kotsu" })
+vim.keymap.set({ "n", "t" }, "<Leader>!", "<Plug>(kotsu-toggle)", { desc = "Hide/unhide kotsu" })
 ```
+
+`<Plug>(kotsu-toggle)` and the `toggle_keymap` option both bind normal *and* terminal mode to the same key, so the toggle also works from inside an embedded terminal (lazygit, toggleterm, etc.). If that key is `<Leader>`-prefixed and your leader is a key the terminal program itself binds bare (e.g. `<Space>` in lazygit), every bare press of that key inside the terminal will wait `timeoutlen` before being forwarded to the job. Pick a key the terminal program never uses standalone if you plan to use the toggle there — a `<C-\>`-prefixed chord (the same convention Neovim's own `<C-\><C-n>` uses) avoids this entirely.
 
 ## Configuration
 
@@ -58,18 +60,18 @@ Defaults:
 
 ```lua
 require("kotsu").setup({
-  keymap = "<Leader>?",          -- false = no mapping
-  toggle_keymap = false,         -- hide/unhide the popup; false = no mapping
-  backend = "claude",            -- or a function, see below
+  keymap = "<Leader>?",  -- false = no mapping
+  toggle_keymap = false, -- hide/unhide the popup, in both normal and terminal mode; false = no mapping
+  backend = "claude",    -- or a function, see below
   timeout_ms = 60000,
-  model = "haiku",               -- passed to the backend, e.g. --model
-  effort = "low",                -- passed to the backend, e.g. --effort
+  model = "haiku", -- passed to the backend, e.g. --model
+  effort = "low",  -- passed to the backend, e.g. --effort
   context = {
     modes = { "n", "x", "o", "i" },
     max_mappings = 500,
   },
   prompt = {
-    extra = nil,                 -- e.g. "I use AstroNvim."
+    extra = nil, -- e.g. "I use AstroNvim."
   },
   window = {
     border = "rounded",

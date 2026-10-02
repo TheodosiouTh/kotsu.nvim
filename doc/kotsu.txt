@@ -44,9 +44,18 @@ the plugin eagerly:
 >lua
   vim.keymap.set("n", "<Leader>?", "<Plug>(kotsu-prompt)",
     { desc = "How do I…?" })
-  vim.keymap.set("n", "<Leader>!", "<Plug>(kotsu-toggle)",
+  vim.keymap.set({ "n", "t" }, "<Leader>!", "<Plug>(kotsu-toggle)",
     { desc = "Hide/unhide kotsu" })
 <
+`<Plug>(kotsu-toggle)` and the `toggle_keymap` option both bind normal
+*and* terminal mode to the same key, so the toggle also works from inside
+an embedded terminal (lazygit, toggleterm, etc.). If that key is
+<Leader>-prefixed and your leader is a key the terminal program itself
+binds bare (e.g. <Space> in lazygit), every bare press of that key inside
+the terminal will wait 'timeoutlen' before being forwarded to the job.
+Pick a key the terminal program never uses standalone if you plan to use
+the toggle there, e.g. a <C-\>-prefixed chord (the same convention
+Neovim's own <C-\><C-n> uses).
 `q`/<Esc>, or asking a new question, cancel a pending request for real:
 the backend process is killed (if the backend supports that) and its
 answer, if it arrives late anyway, is discarded. Hiding the popup does
@@ -68,7 +77,8 @@ Call `setup()` with any options you want to change. Defaults:
   require("kotsu").setup({
     -- Normal-mode mapping for the prompt. `false` = no mapping.
     keymap = "<Leader>?",
-    -- Normal-mode mapping to hide/unhide the popup. `false` = no mapping.
+    -- Mapping (normal and terminal mode) to hide/unhide the popup.
+    -- `false` = no mapping. See the note above about terminal-mode keys.
     toggle_keymap = false,
     -- "claude" or a function. See |kotsu-backend|.
     backend = "claude",

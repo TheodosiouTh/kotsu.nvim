@@ -87,14 +87,16 @@ local function fit(lines)
   if M.is_open() then resize(lines) end
 end
 
-local function open_window(win_opts)
+---@param enter boolean false keeps focus (and whatever currently has it, e.g. a
+---terminal panel) untouched; the popup still renders on top, just unfocused
+local function open_window(win_opts, enter)
   local cfg = position(win_opts.min_width, 1)
   cfg.style = "minimal"
   cfg.border = win_opts.border
   cfg.footer = " q / <Esc> to close "
   cfg.footer_pos = "center"
   cfg.zindex = 250
-  state.win = vim.api.nvim_open_win(state.buf, true, cfg)
+  state.win = vim.api.nvim_open_win(state.buf, enter, cfg)
   vim.wo[state.win].wrap = true
   vim.wo[state.win].linebreak = true
 
@@ -116,15 +118,17 @@ function M.show(lines, question, win_opts, on_close)
   vim.bo[state.buf].bufhidden = "hide"
   vim.bo[state.buf].filetype = "markdown"
 
-  open_window(win_opts)
+  open_window(win_opts, true)
   fit(lines)
 end
 
+---Restores a hidden popup as an overlay, without stealing focus from
+---whatever currently has it (e.g. a terminal panel like lazygit).
 ---@return boolean unhidden false when there was nothing hidden to restore
 function M.unhide()
   if not M.is_hidden() then return false end
   state.hidden = false
-  open_window(state.win_opts)
+  open_window(state.win_opts, false)
   resize(state.lines)
   return true
 end
