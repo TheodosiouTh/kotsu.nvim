@@ -6,6 +6,7 @@ local ui = require("kotsu.ui")
 local M = {}
 
 local mapped_key
+local mapped_toggle_key
 local request = 0
 
 local function notify(msg, level)
@@ -17,6 +18,11 @@ local function frame(text)
   table.insert(lines, 1, "")
   table.insert(lines, "")
   return lines
+end
+
+local function toggle_hint(key)
+  if not key then return nil end
+  return vim.fn.keytrans(vim.api.nvim_replace_termcodes(key, true, true, true))
 end
 
 ---Ask a question and show the answer in the popup.
@@ -41,7 +47,7 @@ function M.ask(question)
   ui.show(frame("Thinking…"), question, opts.window, function()
     local h = ticket.handle
     if h then pcall(function() if not h:is_closing() then h:kill(15) end end) end
-  end)
+  end, toggle_hint(opts.toggle_keymap))
 
   local on_done = vim.schedule_wrap(function(success, text)
     if settled or id ~= request then return end
@@ -64,24 +70,37 @@ function M.prompt()
   vim.ui.input({ prompt = "How do I… " }, M.ask)
 end
 
+---Hide the popup if open, or restore it if hidden. No-op if nothing's been asked yet.
+function M.toggle()
+  if ui.is_open() then
+    ui.hide()
+  elseif ui.is_hidden() then
+    ui.unhide()
+  end
+end
+
 ---Handler for :Kotsu.
 ---@param o table
 function M.command(o)
   if o.args ~= "" then M.ask(o.args) else M.prompt() end
 end
 
+---@param old_key string|false?
+---@param new_key string|false?
+---@param modes string|string[]
+---@return string|false? still_mapped the key now mapped, for the caller to remember
+local function sync_keymap(old_key, new_key, fn, desc, modes)
+  if old_key then pcall(vim.keymap.del, modes, old_key) end
+  if new_key then vim.keymap.set(modes, new_key, fn, { desc = desc }) end
+  return new_key or nil
+end
+
 ---@param opts? table see :h kotsu-config
 function M.setup(opts)
   config.setup(opts)
-  if mapped_key then
-    pcall(vim.keymap.del, "n", mapped_key)
-    mapped_key = nil
-  end
-  local key = config.options.keymap
-  if key then
-    vim.keymap.set("n", key, M.prompt, { desc = "How do I…? (shortcut help)" })
-    mapped_key = key
-  end
+  mapped_key = sync_keymap(mapped_key, config.options.keymap, M.prompt, "How do I…? (shortcut help)", "n")
+  mapped_toggle_key =
+    sync_keymap(mapped_toggle_key, config.options.toggle_keymap, M.toggle, "Hide/unhide the kotsu popup", { "n", "t" })
 end
 
 return M

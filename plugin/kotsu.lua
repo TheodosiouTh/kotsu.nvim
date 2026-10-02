@@ -13,3 +13,7 @@ end, { nargs = "*", desc = "Ask how to do something with shortcuts" })
 vim.keymap.set("n", "<Plug>(kotsu-prompt)", function()
   require("kotsu").prompt()
 end, { desc = "How do I…? (shortcut help)" })
+
+vim.keymap.set({ "n", "t" }, "<Plug>(kotsu-toggle)", function()
+  require("kotsu").toggle()
+end, { desc = "Hide/unhide the kotsu popup" })
