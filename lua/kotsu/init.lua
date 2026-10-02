@@ -6,6 +6,7 @@ local ui = require("kotsu.ui")
 local M = {}
 
 local mapped_key
+local mapped_toggle_key
 local request = 0
 
 local function notify(msg, level)
@@ -64,24 +65,35 @@ function M.prompt()
   vim.ui.input({ prompt = "How do I… " }, M.ask)
 end
 
+---Hide the popup if open, or restore it if hidden. No-op if nothing's been asked yet.
+function M.toggle()
+  if ui.is_open() then
+    ui.hide()
+  elseif ui.is_hidden() then
+    ui.unhide()
+  end
+end
+
 ---Handler for :Kotsu.
 ---@param o table
 function M.command(o)
   if o.args ~= "" then M.ask(o.args) else M.prompt() end
 end
 
+---@param old_key string|false?
+---@param new_key string|false?
+---@return string|false? still_mapped the key now mapped, for the caller to remember
+local function sync_keymap(old_key, new_key, fn, desc)
+  if old_key then pcall(vim.keymap.del, "n", old_key) end
+  if new_key then vim.keymap.set("n", new_key, fn, { desc = desc }) end
+  return new_key or nil
+end
+
 ---@param opts? table see :h kotsu-config
 function M.setup(opts)
   config.setup(opts)
-  if mapped_key then
-    pcall(vim.keymap.del, "n", mapped_key)
-    mapped_key = nil
-  end
-  local key = config.options.keymap
-  if key then
-    vim.keymap.set("n", key, M.prompt, { desc = "How do I…? (shortcut help)" })
-    mapped_key = key
-  end
+  mapped_key = sync_keymap(mapped_key, config.options.keymap, M.prompt, "How do I…? (shortcut help)")
+  mapped_toggle_key = sync_keymap(mapped_toggle_key, config.options.toggle_keymap, M.toggle, "Hide/unhide the kotsu popup")
 end
 
 return M

@@ -1,3 +1,7 @@
+local config = require("kotsu.config")
+local context = require("kotsu.context")
+local backends = require("kotsu.backend")
+
 local M = {}
 
 function M.check()
@@ -10,8 +14,8 @@ function M.check()
     h.error("Neovim 0.10 or newer is required")
   end
 
-  local opts = require("kotsu.config").options
-  local backend, err = require("kotsu.backend").resolve(opts.backend)
+  local opts = config.options
+  local backend, err = backends.resolve(opts.backend)
   if not backend then
     h.error(err)
   else
@@ -23,7 +27,7 @@ function M.check()
     end
   end
 
-  local n = #require("kotsu.context").mappings(opts.context.modes)
+  local n = #context.mappings(opts.context.modes)
   if n == 0 then
     h.warn("no mappings with a description found; answers will only use built-in keys")
   else

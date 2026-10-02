@@ -1,19 +1,36 @@
 local M = {}
 
-local state = { win = nil, buf = nil, question = nil, win_opts = nil, on_close = nil }
-
-function M.close()
-  local win, on_close = state.win, state.on_close
-  state.win, state.buf, state.question, state.win_opts, state.on_close = nil, nil, nil, nil, nil
-  if win and vim.api.nvim_win_is_valid(win) then
-    vim.api.nvim_win_close(win, true)
-  end
-  if on_close then on_close() end
-end
+local state = { win = nil, buf = nil, question = nil, win_opts = nil, on_close = nil, lines = nil, hidden = false }
 
 ---@return boolean
 function M.is_open()
   return state.win ~= nil and vim.api.nvim_win_is_valid(state.win)
+end
+
+---@return boolean
+function M.is_hidden()
+  return state.hidden and state.buf ~= nil and vim.api.nvim_buf_is_valid(state.buf)
+end
+
+function M.close()
+  local win, buf, on_close = state.win, state.buf, state.on_close
+  state.win, state.buf, state.question, state.win_opts, state.on_close, state.lines, state.hidden =
+    nil, nil, nil, nil, nil, nil, false
+  if win and vim.api.nvim_win_is_valid(win) then
+    vim.api.nvim_win_close(win, true)
+  end
+  if buf and vim.api.nvim_buf_is_valid(buf) then
+    vim.api.nvim_buf_delete(buf, { force = true })
+  end
+  if on_close then on_close() end
+end
+
+function M.hide()
+  if not M.is_open() then return false end
+  local win = state.win
+  state.win, state.hidden = nil, true
+  vim.api.nvim_win_close(win, true)
+  return true
 end
 
 local function truncate(s, max)
@@ -46,12 +63,15 @@ local function position(width, height)
   }
 end
 
-local function fit(lines)
-  local width, title = dimensions(lines)
-
+local function set_lines(lines)
+  state.lines = lines
   vim.bo[state.buf].modifiable = true
   vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
   vim.bo[state.buf].modifiable = false
+end
+
+local function resize(lines)
+  local width, title = dimensions(lines)
 
   local cfg = position(width, 1)
   cfg.title, cfg.title_pos = title, "center"
@@ -62,18 +82,12 @@ local function fit(lines)
   vim.api.nvim_win_set_config(state.win, position(width, math.max(1, math.min(rows, max_h))))
 end
 
----@param lines string[]
----@param question string single-line, already trimmed
----@param win_opts kotsu.WindowOptions
----@param on_close? fun() called once when this popup closes, incl. when superseded
-function M.show(lines, question, win_opts, on_close)
-  M.close()
-  state.question, state.win_opts, state.on_close = question, win_opts, on_close
+local function fit(lines)
+  set_lines(lines)
+  if M.is_open() then resize(lines) end
+end
 
-  state.buf = vim.api.nvim_create_buf(false, true)
-  vim.bo[state.buf].bufhidden = "wipe"
-  vim.bo[state.buf].filetype = "markdown"
-
+local function open_window(win_opts)
   local cfg = position(win_opts.min_width, 1)
   cfg.style = "minimal"
   cfg.border = win_opts.border
@@ -87,15 +101,38 @@ function M.show(lines, question, win_opts, on_close)
   for _, key in ipairs({ "q", "<Esc>" }) do
     vim.keymap.set("n", key, M.close, { buffer = state.buf, nowait = true })
   end
-  vim.api.nvim_create_autocmd("WinLeave", { buffer = state.buf, once = true, callback = M.close })
-
-  fit(lines)
+  vim.api.nvim_create_autocmd("WinLeave", { buffer = state.buf, once = true, callback = M.hide })
 end
 
 ---@param lines string[]
----@return boolean updated false when the popup is no longer open
+---@param question string single-line, already trimmed
+---@param win_opts kotsu.WindowOptions
+---@param on_close? fun() called once when this popup closes, incl. when superseded
+function M.show(lines, question, win_opts, on_close)
+  M.close()
+  state.question, state.win_opts, state.on_close, state.hidden = question, win_opts, on_close, false
+
+  state.buf = vim.api.nvim_create_buf(false, true)
+  vim.bo[state.buf].bufhidden = "hide"
+  vim.bo[state.buf].filetype = "markdown"
+
+  open_window(win_opts)
+  fit(lines)
+end
+
+---@return boolean unhidden false when there was nothing hidden to restore
+function M.unhide()
+  if not M.is_hidden() then return false end
+  state.hidden = false
+  open_window(state.win_opts)
+  resize(state.lines)
+  return true
+end
+
+---@param lines string[]
+---@return boolean updated false when the popup is fully closed (nothing to update)
 function M.update(lines)
-  if not M.is_open() then return false end
+  if not (state.buf and vim.api.nvim_buf_is_valid(state.buf)) then return false end
   fit(lines)
   return true
 end

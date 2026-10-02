@@ -32,24 +32,33 @@ Requires Neovim 0.10 or newer and a backend (by default the Claude Code CLI,
 
 <Leader>?               Open the input prompt (see |kotsu-config| `keymap`).
 
-In the popup, `q` or <Esc> closes it. Leaving the window also closes it.
+In the popup, `q` or <Esc> closes it. Leaving the window (e.g. to type the
+suggested key sequence) hides it instead: the last answer is kept, and a
+toggle brings the popup back up. Asking a new question while one is hidden
+discards it and starts fresh.
 
-                                                       *<Plug>(kotsu-prompt)*
-A <Plug> mapping is always available, so you can bind the prompt yourself
-without calling `setup()` and without loading the plugin eagerly:
+                                      *<Plug>(kotsu-prompt)* *<Plug>(kotsu-toggle)*
+<Plug> mappings are always available, so you can bind the prompt and the
+hide/unhide toggle yourself without calling `setup()` and without loading
+the plugin eagerly:
 >lua
   vim.keymap.set("n", "<Leader>?", "<Plug>(kotsu-prompt)",
     { desc = "How do I…?" })
+  vim.keymap.set("n", "<Leader>!", "<Plug>(kotsu-toggle)",
+    { desc = "Hide/unhide kotsu" })
 <
-Closing the popup, or asking a new question, cancels a pending request:
-its backend process is killed (if the backend supports that) and its
-answer, if it arrives late anyway, is discarded.
+`q`/<Esc>, or asking a new question, cancel a pending request for real:
+the backend process is killed (if the backend supports that) and its
+answer, if it arrives late anyway, is discarded. Hiding the popup does
+neither: the request keeps running and its answer is kept for when you
+unhide.
 
 Lua API:                                                           *kotsu-api*
 >lua
-  require("kotsu").setup(opts)   -- apply options and the keymap
+  require("kotsu").setup(opts)   -- apply options and the keymaps
   require("kotsu").ask("...")    -- ask a question
   require("kotsu").prompt()      -- open the input prompt
+  require("kotsu").toggle()      -- hide/unhide the popup
 <
 ==============================================================================
 3. CONFIGURATION                                                *kotsu-config*
@@ -59,6 +68,8 @@ Call `setup()` with any options you want to change. Defaults:
   require("kotsu").setup({
     -- Normal-mode mapping for the prompt. `false` = no mapping.
     keymap = "<Leader>?",
+    -- Normal-mode mapping to hide/unhide the popup. `false` = no mapping.
+    toggle_keymap = false,
     -- "claude" or a function. See |kotsu-backend|.
     backend = "claude",
     timeout_ms = 60000,

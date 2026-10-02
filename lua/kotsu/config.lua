@@ -15,6 +15,7 @@ local M = {}
 
 ---@class kotsu.Options
 ---@field keymap string|false
+---@field toggle_keymap string|false
 ---@field backend string|kotsu.BackendRun
 ---@field timeout_ms integer
 ---@field model? string
@@ -24,6 +25,7 @@ local M = {}
 ---@field window kotsu.WindowOptions
 M.defaults = {
   keymap = "<Leader>?",
+  toggle_keymap = false,
   backend = "claude",
   timeout_ms = 60000,
   model = "haiku",
@@ -56,6 +58,8 @@ local function is_ratio(v) return type(v) == "number" and v > 0 and v <= 1 end
 
 local function is_positive(v) return type(v) == "number" and v > 0 end
 
+local function is_keymap(v) return v == false or type(v) == "string" end
+
 ---@param opts? table
 ---@return kotsu.Options
 function M.setup(opts)
@@ -67,7 +71,8 @@ function M.setup(opts)
     o.context.modes = vim.deepcopy(opts.context.modes)
   end
 
-  check("keymap", o.keymap == false or type(o.keymap) == "string", "a string or false")
+  check("keymap", is_keymap(o.keymap), "a string or false")
+  check("toggle_keymap", is_keymap(o.toggle_keymap), "a string or false")
   check("backend", type(o.backend) == "string" or type(o.backend) == "function", "a string or a function")
   check("timeout_ms", is_positive(o.timeout_ms), "a positive number")
   check("model", o.model == nil or type(o.model) == "string", "a string or nil")

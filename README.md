@@ -43,10 +43,13 @@ Then run `:checkhealth kotsu`.
 | `:Kotsu` / `<Leader>?` | Open the input prompt |
 | `q` / `<Esc>`          | Close the popup       |
 
-Bind the prompt yourself with the always-available `<Plug>` mapping, no `setup()` needed:
+Leaving the popup's window (e.g. to type the suggested key sequence) hides it instead of closing it: the answer is kept, and a toggle key brings it back. `q`/`<Esc>`, or asking a new question, close it for real.
+
+Bind the prompt and the toggle yourself with the always-available `<Plug>` mappings, no `setup()` needed:
 
 ```lua
 vim.keymap.set("n", "<Leader>?", "<Plug>(kotsu-prompt)", { desc = "How do I…?" })
+vim.keymap.set("n", "<Leader>!", "<Plug>(kotsu-toggle)", { desc = "Hide/unhide kotsu" })
 ```
 
 ## Configuration
@@ -56,6 +59,7 @@ Defaults:
 ```lua
 require("kotsu").setup({
   keymap = "<Leader>?",          -- false = no mapping
+  toggle_keymap = false,         -- hide/unhide the popup; false = no mapping
   backend = "claude",            -- or a function, see below
   timeout_ms = 60000,
   model = "haiku",               -- passed to the backend, e.g. --model
