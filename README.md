@@ -26,7 +26,7 @@ Ask Neovim _how_ to do something and get the fastest key sequence, grounded in *
 
 ```lua
 {
-  "TheodosiouTh/kotsu.nvim",
+  "thanoswasbusy/kotsu.nvim",
   cmd = "Kotsu",
   keys = { { "<Leader>?", function() require("kotsu").prompt() end, desc = "How do I…?" } },
   opts = {},
